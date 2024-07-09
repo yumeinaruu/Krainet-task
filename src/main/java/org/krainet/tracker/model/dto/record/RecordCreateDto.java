@@ -17,8 +17,6 @@ public class RecordCreateDto {
     @NotNull
     private Timestamp started;
 
-    private Timestamp deadline;
-
     @NotNull
     private ProjectForRecordDto project;
 }

@@ -2,12 +2,15 @@ package org.krainet.tracker.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import lombok.Data;
+import org.krainet.tracker.model.dto.record.Status;
 import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
@@ -31,4 +34,8 @@ public class Record {
 
     @Column(name = "project_id", nullable = false)
     private Long projectId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private Status status;
 }
