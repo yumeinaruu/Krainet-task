@@ -40,7 +40,7 @@ public class UserService {
 
     public Optional<User> getInfoAboutCurrentUser(String username) {
         Optional<Security> security = securityRepository.findByLogin(username);
-        if(security.isEmpty()){
+        if (security.isEmpty()) {
             return Optional.empty();
         }
         return userRepository.findById(security.get().getUserId());
