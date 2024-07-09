@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.krainet.tracker.model.dto.project.ProjectForRecordDto;
+import org.krainet.tracker.model.dto.user.UserForOtherClassesDto;
 import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
@@ -19,4 +20,7 @@ public class RecordCreateDto {
 
     @NotNull
     private ProjectForRecordDto project;
+
+    @NotNull
+    private UserForOtherClassesDto user;
 }
