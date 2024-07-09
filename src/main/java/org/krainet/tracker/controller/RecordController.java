@@ -5,12 +5,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.krainet.tracker.exception.custom.CustomValidationException;
 import org.krainet.tracker.model.Record;
+import org.krainet.tracker.model.User;
 import org.krainet.tracker.model.dto.record.RecordCreateDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateDeadlineDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateProjectIdDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateStartedDto;
+import org.krainet.tracker.security.repository.SecurityRepository;
 import org.krainet.tracker.service.RecordService;
+import org.krainet.tracker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,7 +40,8 @@ public class RecordController {
     private final RecordService recordService;
 
     @Autowired
-    public RecordController(RecordService recordService) {
+    public RecordController(RecordService recordService, UserService userService,
+                            SecurityRepository securityRepository) {
         this.recordService = recordService;
     }
 
@@ -73,47 +78,47 @@ public class RecordController {
     @PutMapping
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> updateRecord(@RequestBody @Valid RecordUpdateDto recordUpdateDto,
-                                                   BindingResult bindingResult) {
+                                                   BindingResult bindingResult, Principal principal) {
         if (bindingResult.hasErrors()) {
             throw new CustomValidationException(bindingResult.getAllErrors().toString());
         }
-        return new ResponseEntity<>(recordService.updateRecord(recordUpdateDto) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(recordService.updateRecord(recordUpdateDto, principal.getName()) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
     }
 
     @PutMapping("/started")
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> updateRecordStarted(@RequestBody @Valid RecordUpdateStartedDto recordUpdateStartedDto,
-                                                          BindingResult bindingResult) {
+                                                          BindingResult bindingResult, Principal principal) {
         if (bindingResult.hasErrors()) {
             throw new CustomValidationException(bindingResult.getAllErrors().toString());
         }
-        return new ResponseEntity<>(recordService.updateRecordStarted(recordUpdateStartedDto) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(recordService.updateRecordStarted(recordUpdateStartedDto, principal.getName()) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
     }
 
     @PutMapping("/deadline")
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> updateRecordDeadline(@RequestBody @Valid RecordUpdateDeadlineDto recordUpdateDeadlineDto,
-                                                           BindingResult bindingResult) {
+                                                           BindingResult bindingResult, Principal principal) {
         if (bindingResult.hasErrors()) {
             throw new CustomValidationException(bindingResult.getAllErrors().toString());
         }
-        return new ResponseEntity<>(recordService.updateRecordDeadline(recordUpdateDeadlineDto) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(recordService.updateRecordDeadline(recordUpdateDeadlineDto, principal.getName()) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
     }
 
     @PutMapping("/project")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> updateRecordProject(@RequestBody @Valid RecordUpdateProjectIdDto recordUpdateProjectIdDto,
-                                                          BindingResult bindingResult) {
+                                                          BindingResult bindingResult, Principal principal) {
         if (bindingResult.hasErrors()) {
             throw new CustomValidationException(bindingResult.getAllErrors().toString());
         }
-        return new ResponseEntity<>(recordService.updateRecordProjectId(recordUpdateProjectIdDto) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(recordService.updateRecordProjectId(recordUpdateProjectIdDto, principal.getName()) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping("/end/{id}")
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<HttpStatus> makeRecordEnd(@PathVariable Long id) {
-        return new ResponseEntity<>(recordService.projectCompleted(id) ? HttpStatus.NO_CONTENT : HttpStatus.CONFLICT);
+    public ResponseEntity<HttpStatus> makeRecordEnd(@PathVariable Long id, Principal principal) {
+        return new ResponseEntity<>(recordService.projectCompleted(id, principal.getName()) ? HttpStatus.NO_CONTENT : HttpStatus.CONFLICT);
     }
 
     @DeleteMapping("/{id}")
