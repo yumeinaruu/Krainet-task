@@ -1,5 +1,6 @@
 package org.krainet.tracker.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.krainet.tracker.exception.custom.CustomValidationException;
@@ -14,6 +15,7 @@ import org.krainet.tracker.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,6 +31,7 @@ import java.util.Optional;
 
 @RestController
 @Tag(name = "Work with projects")
+@SecurityRequirement(name = "Bearer Authentication")
 @RequestMapping("/project")
 public class ProjectController {
     private final ProjectService projectService;
@@ -39,6 +42,7 @@ public class ProjectController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<List<Project>> getProjects() {
         List<Project> projects = projectService.getAllProjects();
         if (projects.isEmpty()) {
@@ -48,6 +52,7 @@ public class ProjectController {
     }
 
     @GetMapping("/id/{id}")
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Project> getProjectById(@PathVariable Long id) {
         Optional<Project> project = projectService.getProjectById(id);
         if (project.isPresent()) {
@@ -57,6 +62,7 @@ public class ProjectController {
     }
 
     @PostMapping("/name")
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Project> getProjectByName(@RequestBody @Valid FindByNameDto findByNameDto,
                                                     BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -70,6 +76,7 @@ public class ProjectController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> createProject(@RequestBody @Valid ProjectCreateDto projectCreateDto,
                                                     BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -79,6 +86,7 @@ public class ProjectController {
     }
 
     @PutMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> updateProject(@RequestBody @Valid ProjectUpdateDto projectUpdateDto,
                                                     BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -88,6 +96,7 @@ public class ProjectController {
     }
 
     @PutMapping("/name")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> updateProjectName(@RequestBody @Valid ProjectUpdateNameDto projectUpdateNameDto,
                                                         BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -97,6 +106,7 @@ public class ProjectController {
     }
 
     @PutMapping("/description")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> updateProjectDescription(@RequestBody @Valid ProjectUpdateDescriptionDto projectUpdateDescriptionDto,
                                                                BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -106,6 +116,7 @@ public class ProjectController {
     }
 
     @PutMapping("/user")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> updateProjectUser(@RequestBody @Valid ProjectUpdateUserDto projectUpdateUserDto,
                                                         BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -115,6 +126,7 @@ public class ProjectController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> deleteProject(@PathVariable Long id) {
         return new ResponseEntity<>(projectService.deleteProject(id) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
     }

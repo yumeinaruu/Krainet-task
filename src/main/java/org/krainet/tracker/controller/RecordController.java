@@ -1,5 +1,6 @@
 package org.krainet.tracker.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.krainet.tracker.exception.custom.CustomValidationException;
@@ -13,6 +14,7 @@ import org.krainet.tracker.service.RecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +30,7 @@ import java.util.Optional;
 
 @RestController
 @Tag(name = "Work with records")
+@SecurityRequirement(name = "Bearer Authentication")
 @RequestMapping("/record")
 public class RecordController {
     private final RecordService recordService;
@@ -38,6 +41,7 @@ public class RecordController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<List<Record>> getRecords() {
         List<Record> records = recordService.getAllRecords();
         if (records.isEmpty()) {
@@ -47,6 +51,7 @@ public class RecordController {
     }
 
     @GetMapping("/id/{id}")
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Record> getRecordById(@PathVariable Long id) {
         Optional<Record> record = recordService.getRecordById(id);
         if (record.isPresent()) {
@@ -56,6 +61,7 @@ public class RecordController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> createRecord(@RequestBody @Valid RecordCreateDto recordCreateDto,
                                                    BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -65,6 +71,7 @@ public class RecordController {
     }
 
     @PutMapping
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> updateRecord(@RequestBody @Valid RecordUpdateDto recordUpdateDto,
                                                    BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -74,6 +81,7 @@ public class RecordController {
     }
 
     @PutMapping("/started")
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> updateRecordStarted(@RequestBody @Valid RecordUpdateStartedDto recordUpdateStartedDto,
                                                           BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -83,6 +91,7 @@ public class RecordController {
     }
 
     @PutMapping("/deadline")
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> updateRecordDeadline(@RequestBody @Valid RecordUpdateDeadlineDto recordUpdateDeadlineDto,
                                                            BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -92,6 +101,7 @@ public class RecordController {
     }
 
     @PutMapping("/project")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> updateRecordProject(@RequestBody @Valid RecordUpdateProjectIdDto recordUpdateProjectIdDto,
                                                           BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -100,7 +110,14 @@ public class RecordController {
         return new ResponseEntity<>(recordService.updateRecordProjectId(recordUpdateProjectIdDto) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
     }
 
+    @PostMapping("/end/{id}")
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<HttpStatus> makeRecordEnd(@PathVariable Long id) {
+        return new ResponseEntity<>(recordService.projectCompleted(id) ? HttpStatus.NO_CONTENT : HttpStatus.CONFLICT);
+    }
+
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> deleteRecord(@PathVariable Long id) {
         return new ResponseEntity<>(recordService.deleteRecordById(id) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
     }

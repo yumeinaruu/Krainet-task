@@ -1,5 +1,6 @@
 package org.krainet.tracker.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.krainet.tracker.exception.custom.CustomValidationException;
@@ -11,6 +12,7 @@ import org.krainet.tracker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +28,7 @@ import java.util.Optional;
 
 @RestController
 @Tag(name = "Work with users")
+@SecurityRequirement(name = "Bearer Authentication")
 @RequestMapping("/user")
 public class UserController {
     private final UserService userService;
@@ -36,6 +39,7 @@ public class UserController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.getAllUsers();
         if (users.isEmpty()) {
@@ -45,6 +49,7 @@ public class UserController {
     }
 
     @GetMapping("/id/{id}")
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         Optional<User> user = userService.getUserById(id);
         if (user.isPresent()) {
@@ -54,6 +59,7 @@ public class UserController {
     }
 
     @PostMapping("/name")
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<User> getUserByName(@RequestBody @Valid FindByNameDto findByNameDto,
                                               BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -67,6 +73,7 @@ public class UserController {
     }
 
     @GetMapping("/name-sort")
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<List<User>> getUsersSortedByUsername() {
         List<User> users = userService.getUsersSortedByName();
         if (users.isEmpty()) {
@@ -76,6 +83,7 @@ public class UserController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> createUser(@RequestBody @Valid UserCreateDto userCreateDto,
                                                  BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -85,6 +93,7 @@ public class UserController {
     }
 
     @PutMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> updateUser(@RequestBody @Valid UserUpdateDto userUpdateDto,
                                                  BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -94,6 +103,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<HttpStatus> deleteUser(@PathVariable Long id) {
         return new ResponseEntity<>(userService.deleteUserById(id) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
     }
