@@ -1,16 +1,20 @@
 package org.krainet.tracker.service;
 
+import org.krainet.tracker.model.Project;
 import org.krainet.tracker.model.Record;
 import org.krainet.tracker.model.dto.record.RecordCreateDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateDeadlineDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateProjectIdDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateStartedDto;
+import org.krainet.tracker.model.dto.record.Status;
 import org.krainet.tracker.repository.ProjectRepository;
 import org.krainet.tracker.repository.RecordRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,23 +39,28 @@ public class RecordService {
 
     public Boolean createRecord(RecordCreateDto recordCreateDto) {
         Record record = new Record();
-        if(projectRepository.findByName(recordCreateDto.getProject().getName()).isPresent()){
+        if (projectRepository.findByName(recordCreateDto.getProject().getName()).isPresent()) {
             record.setProjectId(projectRepository.findByName(recordCreateDto.getProject().getName()).get().getId());
         }
         record.setStarted(recordCreateDto.getStarted());
-        record.setDeadline(recordCreateDto.getDeadline());
+        record.setStatus(Status.STARTED);
         Record savedRecord = recordRepository.save(record);
         return getRecordById(savedRecord.getId()).isPresent();
     }
 
     public Boolean updateRecord(RecordUpdateDto recordUpdateDto) {
         Optional<Record> recordOptional = recordRepository.findById(recordUpdateDto.getId());
-        if(recordOptional.isPresent()){
+        if (recordOptional.isPresent()) {
             Record record = recordOptional.get();
             record.setStarted(recordUpdateDto.getStarted());
             record.setDeadline(recordUpdateDto.getDeadline());
-            if(projectRepository.findByName(recordUpdateDto.getProject().getName()).isPresent()){
+            if (projectRepository.findByName(recordUpdateDto.getProject().getName()).isPresent()) {
                 record.setProjectId(projectRepository.findByName(recordUpdateDto.getProject().getName()).get().getId());
+            }
+            if (record.getDeadline().before(Timestamp.valueOf(LocalDateTime.now()))) {
+                record.setStatus(Status.FINISHED);
+            } else {
+                record.setStatus(Status.STARTED);
             }
             Record savedRecord = recordRepository.saveAndFlush(record);
             return savedRecord.equals(record);
@@ -61,7 +70,7 @@ public class RecordService {
 
     public Boolean updateRecordStarted(RecordUpdateStartedDto recordUpdateStartedDto) {
         Optional<Record> recordOptional = recordRepository.findById(recordUpdateStartedDto.getId());
-        if(recordOptional.isPresent()){
+        if (recordOptional.isPresent()) {
             Record record = recordOptional.get();
             record.setStarted(recordUpdateStartedDto.getStarted());
             Record savedRecord = recordRepository.saveAndFlush(record);
@@ -72,9 +81,14 @@ public class RecordService {
 
     public Boolean updateRecordDeadline(RecordUpdateDeadlineDto recordUpdateDeadlineDto) {
         Optional<Record> recordOptional = recordRepository.findById(recordUpdateDeadlineDto.getId());
-        if(recordOptional.isPresent()){
+        if (recordOptional.isPresent()) {
             Record record = recordOptional.get();
             record.setDeadline(recordUpdateDeadlineDto.getDeadline());
+            if (record.getDeadline().before(Timestamp.valueOf(LocalDateTime.now()))) {
+                record.setStatus(Status.FINISHED);
+            } else {
+                record.setStatus(Status.STARTED);
+            }
             Record savedRecord = recordRepository.saveAndFlush(record);
             return savedRecord.equals(record);
         }
@@ -83,9 +97,9 @@ public class RecordService {
 
     public Boolean updateRecordProjectId(RecordUpdateProjectIdDto recordUpdateProjectIdDto) {
         Optional<Record> recordOptional = recordRepository.findById(recordUpdateProjectIdDto.getId());
-        if(recordOptional.isPresent()){
+        if (recordOptional.isPresent()) {
             Record record = recordOptional.get();
-            if(projectRepository.findByName(recordUpdateProjectIdDto.getProject().getName()).isPresent()){
+            if (projectRepository.findByName(recordUpdateProjectIdDto.getProject().getName()).isPresent()) {
                 record.setProjectId(projectRepository.findByName(recordUpdateProjectIdDto.getProject().getName()).get().getId());
             }
             Record savedRecord = recordRepository.saveAndFlush(record);
@@ -94,9 +108,21 @@ public class RecordService {
         return false;
     }
 
+    public Boolean projectCompleted(Long id) {
+        Optional<Record> recordOptional = recordRepository.findById(id);
+        if (recordOptional.isPresent()) {
+            Record record = recordOptional.get();
+            record.setDeadline(Timestamp.valueOf(LocalDateTime.now()));
+            record.setStatus(Status.FINISHED);
+            Record savedRecord = recordRepository.saveAndFlush(record);
+            return savedRecord.equals(record);
+        }
+        return false;
+    }
+
     public Boolean deleteRecordById(Long id) {
         Optional<Record> recordOptional = recordRepository.findById(id);
-        if(recordOptional.isEmpty()){
+        if (recordOptional.isEmpty()) {
             return false;
         }
         recordRepository.delete(recordOptional.get());
