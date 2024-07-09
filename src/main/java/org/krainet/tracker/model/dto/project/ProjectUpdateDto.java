@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.krainet.tracker.model.dto.user.UserForProjectDto;
+import org.krainet.tracker.model.dto.user.UserForOtherClassesDto;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,5 +23,5 @@ public class ProjectUpdateDto {
     @NotNull
     private String description;
 
-    private UserForProjectDto user;
+    private UserForOtherClassesDto user;
 }

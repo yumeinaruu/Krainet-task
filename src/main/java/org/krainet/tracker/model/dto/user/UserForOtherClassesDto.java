@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserForProjectDto {
+public class UserForOtherClassesDto {
     @NotNull
     @Size(min = 2, max = 50)
     private String name;

@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.krainet.tracker.model.dto.user.UserForProjectDto;
+import org.krainet.tracker.model.dto.user.UserForOtherClassesDto;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,5 +15,5 @@ public class ProjectUpdateUserDto {
     @NotNull
     private Long id;
 
-    private UserForProjectDto user;
+    private UserForOtherClassesDto user;
 }

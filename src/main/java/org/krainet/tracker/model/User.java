@@ -37,4 +37,7 @@ public class User {
 
     @OneToMany(mappedBy = "userId", fetch = FetchType.EAGER)
     private Collection<Project> projects;
+
+    @OneToMany(mappedBy = "userId", fetch = FetchType.EAGER)
+    private Collection<Record> records;
 }
