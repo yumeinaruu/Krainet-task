@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,12 +75,22 @@ public class UserController {
 
     @GetMapping("/name-sort")
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<List<User>> getUsersSortedByUsername() {
+    public ResponseEntity<List<User>> getUsersSortedByName() {
         List<User> users = userService.getUsersSortedByName();
         if (users.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(users, HttpStatus.OK);
+    }
+
+    @GetMapping("/info")
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<User> getCurrentUser(Principal principal) {
+        Optional<User> result = userService.getInfoAboutCurrentUser(principal.getName());
+        if (result.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(result.get(), HttpStatus.OK);
     }
 
     @PostMapping

@@ -4,6 +4,8 @@ import org.krainet.tracker.model.User;
 import org.krainet.tracker.model.dto.user.UserCreateDto;
 import org.krainet.tracker.model.dto.user.UserUpdateDto;
 import org.krainet.tracker.repository.UserRepository;
+import org.krainet.tracker.security.model.Security;
+import org.krainet.tracker.security.repository.SecurityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -16,10 +18,12 @@ import java.util.Optional;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final SecurityRepository securityRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, SecurityRepository securityRepository) {
         this.userRepository = userRepository;
+        this.securityRepository = securityRepository;
     }
 
     public List<User> getAllUsers() {
@@ -34,7 +38,13 @@ public class UserService {
         return userRepository.findByName(name);
     }
 
-    //TODO::get info from security about current user
+    public Optional<User> getInfoAboutCurrentUser(String username) {
+        Optional<Security> security = securityRepository.findByLogin(username);
+        if(security.isEmpty()){
+            return Optional.empty();
+        }
+        return userRepository.findById(security.get().getUserId());
+    }
 
     public List<User> getUsersSortedByName() {
         return userRepository.findAll(Sort.by("name"));
