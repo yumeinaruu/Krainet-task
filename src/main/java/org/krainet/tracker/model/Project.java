@@ -8,8 +8,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import lombok.Data;
 import org.springframework.stereotype.Component;
+
+import java.sql.Timestamp;
 
 @Entity(name = "projects")
 @Component
@@ -30,4 +34,12 @@ public class Project {
     @JoinColumn(name = "user_id")
     @ManyToOne
     private User userId;
+
+    @Column(name = "created", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Timestamp created;
+
+    @Column(name = "changed")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Timestamp changed;
 }
