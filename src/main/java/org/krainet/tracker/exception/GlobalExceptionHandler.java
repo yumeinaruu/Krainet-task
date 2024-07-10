@@ -3,6 +3,8 @@ package org.krainet.tracker.exception;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.krainet.tracker.exception.custom.CustomValidationException;
+import org.krainet.tracker.exception.custom.NoSuchDataInDbException;
+import org.krainet.tracker.exception.custom.NoSuchUserException;
 import org.krainet.tracker.exception.custom.NotThatUserUpdatesRecord;
 import org.krainet.tracker.exception.custom.SameUserInDatabase;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,19 @@ public class GlobalExceptionHandler {
         log.error("Error occurred: " + ex);
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(NoSuchUserException.class)
+    public ResponseEntity<HttpStatus> handleNoSuchUserException(NoSuchUserException ex) {
+        log.error("Error occurred: " + ex);
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NoSuchDataInDbException.class)
+    public ResponseEntity<HttpStatus> handleNoSuchDataInDbException(NoSuchDataInDbException ex) {
+        log.error("Error occurred: " + ex);
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
 
     @ExceptionHandler(NotThatUserUpdatesRecord.class)
     public ResponseEntity<HttpStatus> handleNotThatUserUpdatesRecord(NotThatUserUpdatesRecord ex) {
