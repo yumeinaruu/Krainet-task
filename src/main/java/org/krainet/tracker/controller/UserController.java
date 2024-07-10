@@ -1,5 +1,6 @@
 package org.krainet.tracker.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -41,6 +42,7 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Gives info about all users")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.getAllUsers();
         if (users.isEmpty()) {
@@ -51,6 +53,7 @@ public class UserController {
 
     @GetMapping("/id/{id}")
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Gives info about user by id")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         Optional<User> user = userService.getUserById(id);
         if (user.isPresent()) {
@@ -61,6 +64,7 @@ public class UserController {
 
     @PostMapping("/name")
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Gives info about user by name")
     public ResponseEntity<User> getUserByName(@RequestBody @Valid FindByNameDto findByNameDto,
                                               BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -75,6 +79,7 @@ public class UserController {
 
     @GetMapping("/name-sort")
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Gives info about all users sorted by name")
     public ResponseEntity<List<User>> getUsersSortedByName() {
         List<User> users = userService.getUsersSortedByName();
         if (users.isEmpty()) {
@@ -85,6 +90,7 @@ public class UserController {
 
     @GetMapping("/info")
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Gives info about current logged user")
     public ResponseEntity<User> getCurrentUser(Principal principal) {
         Optional<User> result = userService.getInfoAboutCurrentUser(principal.getName());
         if (result.isEmpty()) {
@@ -95,6 +101,7 @@ public class UserController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Create user")
     public ResponseEntity<HttpStatus> createUser(@RequestBody @Valid UserCreateDto userCreateDto,
                                                  BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -105,6 +112,7 @@ public class UserController {
 
     @PutMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Update user")
     public ResponseEntity<HttpStatus> updateUser(@RequestBody @Valid UserUpdateDto userUpdateDto,
                                                  BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -115,6 +123,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Delete user")
     public ResponseEntity<HttpStatus> deleteUser(@PathVariable Long id) {
         return new ResponseEntity<>(userService.deleteUserById(id) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
     }
