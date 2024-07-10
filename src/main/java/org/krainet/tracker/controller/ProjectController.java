@@ -10,7 +10,6 @@ import org.krainet.tracker.model.dto.project.ProjectCreateDto;
 import org.krainet.tracker.model.dto.project.ProjectUpdateDescriptionDto;
 import org.krainet.tracker.model.dto.project.ProjectUpdateDto;
 import org.krainet.tracker.model.dto.project.ProjectUpdateNameDto;
-import org.krainet.tracker.model.dto.project.ProjectUpdateUserDto;
 import org.krainet.tracker.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -113,16 +112,6 @@ public class ProjectController {
             throw new CustomValidationException(bindingResult.getAllErrors().toString());
         }
         return new ResponseEntity<>(projectService.updateProjectDescription(projectUpdateDescriptionDto) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
-    }
-
-    @PutMapping("/user")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<HttpStatus> updateProjectUser(@RequestBody @Valid ProjectUpdateUserDto projectUpdateUserDto,
-                                                        BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            throw new CustomValidationException(bindingResult.getAllErrors().toString());
-        }
-        return new ResponseEntity<>(projectService.updateProjectUser(projectUpdateUserDto) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
     }
 
     @DeleteMapping("/{id}")

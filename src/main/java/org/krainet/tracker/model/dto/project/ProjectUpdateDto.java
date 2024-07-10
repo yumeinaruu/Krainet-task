@@ -22,6 +22,4 @@ public class ProjectUpdateDto {
 
     @NotNull
     private String description;
-
-    private UserForOtherClassesDto user;
 }

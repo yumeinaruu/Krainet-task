@@ -7,6 +7,7 @@ import org.krainet.tracker.exception.custom.CustomValidationException;
 import org.krainet.tracker.model.Record;
 import org.krainet.tracker.model.User;
 import org.krainet.tracker.model.dto.record.RecordCreateDto;
+import org.krainet.tracker.model.dto.record.RecordStartDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateDeadlineDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateProjectIdDto;
@@ -73,6 +74,16 @@ public class RecordController {
             throw new CustomValidationException(bindingResult.getAllErrors().toString());
         }
         return new ResponseEntity<>(recordService.createRecord(recordCreateDto) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
+    }
+
+    @PostMapping("/start")
+    @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<HttpStatus> startRecord(@RequestBody @Valid RecordStartDto recordStartDto,
+                                                  BindingResult bindingResult, Principal principal) {
+        if (bindingResult.hasErrors()) {
+            throw new CustomValidationException(bindingResult.getAllErrors().toString());
+        }
+        return new ResponseEntity<>(recordService.startRecord(recordStartDto, principal.getName()) ? HttpStatus.CREATED : HttpStatus.CONFLICT);
     }
 
     @PutMapping

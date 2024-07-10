@@ -19,6 +19,4 @@ public class ProjectCreateDto {
 
     @NotNull
     private String description;
-
-    private UserForOtherClassesDto user;
 }

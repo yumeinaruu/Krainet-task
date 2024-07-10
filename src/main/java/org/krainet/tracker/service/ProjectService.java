@@ -5,9 +5,7 @@ import org.krainet.tracker.model.dto.project.ProjectCreateDto;
 import org.krainet.tracker.model.dto.project.ProjectUpdateDescriptionDto;
 import org.krainet.tracker.model.dto.project.ProjectUpdateDto;
 import org.krainet.tracker.model.dto.project.ProjectUpdateNameDto;
-import org.krainet.tracker.model.dto.project.ProjectUpdateUserDto;
 import org.krainet.tracker.repository.ProjectRepository;
-import org.krainet.tracker.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,12 +17,10 @@ import java.util.Optional;
 @Service
 public class ProjectService {
     private final ProjectRepository projectRepository;
-    private final UserRepository userRepository;
 
     @Autowired
-    public ProjectService(ProjectRepository projectRepository, UserRepository userRepository) {
+    public ProjectService(ProjectRepository projectRepository) {
         this.projectRepository = projectRepository;
-        this.userRepository = userRepository;
     }
 
     public List<Project> getAllProjects() {
@@ -43,9 +39,6 @@ public class ProjectService {
         Project project = new Project();
         project.setName(projectCreateDto.getName());
         project.setDescription(projectCreateDto.getDescription());
-        if (userRepository.findByName(projectCreateDto.getUser().getName()).isPresent()) {
-            project.setUserId(userRepository.findByName(projectCreateDto.getUser().getName()).get());
-        }
         project.setCreated(Timestamp.valueOf(LocalDateTime.now()));
         project.setChanged(Timestamp.valueOf(LocalDateTime.now()));
         Project savedProject = projectRepository.save(project);
@@ -58,9 +51,6 @@ public class ProjectService {
             Project project = projectOptional.get();
             project.setName(projectUpdateDto.getName());
             project.setDescription(projectUpdateDto.getDescription());
-            if (userRepository.findByName(projectUpdateDto.getUser().getName()).isPresent()) {
-                project.setUserId(userRepository.findByName(projectUpdateDto.getUser().getName()).get());
-            }
             project.setChanged(Timestamp.valueOf(LocalDateTime.now()));
             Project savedProject = projectRepository.saveAndFlush(project);
             return savedProject.equals(project);
@@ -85,20 +75,6 @@ public class ProjectService {
         if (projectOptional.isPresent()) {
             Project project = projectOptional.get();
             project.setDescription(projectUpdateDescriptionDto.getDescription());
-            project.setChanged(Timestamp.valueOf(LocalDateTime.now()));
-            Project savedProject = projectRepository.saveAndFlush(project);
-            return savedProject.equals(project);
-        }
-        return false;
-    }
-
-    public Boolean updateProjectUser(ProjectUpdateUserDto projectUpdateUserDto) {
-        Optional<Project> projectOptional = getProjectById(projectUpdateUserDto.getId());
-        if (projectOptional.isPresent()) {
-            Project project = projectOptional.get();
-            if (userRepository.findByName(projectUpdateUserDto.getUser().getName()).isPresent()) {
-                project.setUserId(userRepository.findByName(projectUpdateUserDto.getUser().getName()).get());
-            }
             project.setChanged(Timestamp.valueOf(LocalDateTime.now()));
             Project savedProject = projectRepository.saveAndFlush(project);
             return savedProject.equals(project);

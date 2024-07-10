@@ -36,8 +36,5 @@ public class User {
     private Timestamp changed;
 
     @OneToMany(mappedBy = "userId", fetch = FetchType.EAGER)
-    private Collection<Project> projects;
-
-    @OneToMany(mappedBy = "userId", fetch = FetchType.EAGER)
     private Collection<Record> records;
 }

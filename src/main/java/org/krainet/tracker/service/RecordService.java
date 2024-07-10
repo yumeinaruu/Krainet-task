@@ -1,9 +1,10 @@
 package org.krainet.tracker.service;
 
 import org.krainet.tracker.exception.custom.NotThatUserUpdatesRecord;
-import org.krainet.tracker.model.Project;
 import org.krainet.tracker.model.Record;
+import org.krainet.tracker.model.User;
 import org.krainet.tracker.model.dto.record.RecordCreateDto;
+import org.krainet.tracker.model.dto.record.RecordStartDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateDeadlineDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateProjectIdDto;
@@ -61,11 +62,19 @@ public class RecordService {
         return getRecordById(savedRecord.getId()).isPresent();
     }
 
-    public Boolean updateRecord(RecordUpdateDto recordUpdateDto, String username) {
-        Optional<Security> security = securityRepository.findByLogin(username);
-        if (security.isEmpty()) {
-            return false;
+    public Boolean startRecord(RecordStartDto recordStartDto, String username) {
+        Record record = new Record();
+        if (projectRepository.findByName(recordStartDto.getProject().getName()).isPresent()) {
+            record.setProjectId(projectRepository.findByName(recordStartDto.getProject().getName()).get().getId());
         }
+        record.setStarted(Timestamp.valueOf(LocalDateTime.now()));
+        record.setStatus(Status.STARTED);
+        record.setUserId(startTimerUser(username));
+        Record savedRecord = recordRepository.save(record);
+        return getRecordById(savedRecord.getId()).isPresent();
+    }
+
+    public Boolean updateRecord(RecordUpdateDto recordUpdateDto, String username) {
         Optional<Record> recordOptional = recordRepository.findById(recordUpdateDto.getId());
         if (recordOptional.isPresent()) {
             Record record = recordOptional.get();
@@ -74,13 +83,7 @@ public class RecordService {
             if (projectRepository.findByName(recordUpdateDto.getProject().getName()).isPresent()) {
                 record.setProjectId(projectRepository.findByName(recordUpdateDto.getProject().getName()).get().getId());
             }
-            if (userRepository.findByName(recordUpdateDto.getUser().getName()).isPresent()) {
-                record.setUserId(projectRepository.findByName(recordUpdateDto.getUser().getName()).get().getUserId());
-            }
-            if (!record.getUserId().equals(userRepository.findById(security.get().getUserId()).get()) &&
-            security.get().getRole().equals(Roles.USER)) {
-                throw new NotThatUserUpdatesRecord(username);
-            }
+            checkSecurity(username, record);
             if (record.getDeadline().before(Timestamp.valueOf(LocalDateTime.now()))) {
                 record.setStatus(Status.FINISHED);
             } else {
@@ -93,17 +96,10 @@ public class RecordService {
     }
 
     public Boolean updateRecordStarted(RecordUpdateStartedDto recordUpdateStartedDto, String username) {
-        Optional<Security> security = securityRepository.findByLogin(username);
-        if (security.isEmpty()) {
-            return false;
-        }
         Optional<Record> recordOptional = recordRepository.findById(recordUpdateStartedDto.getId());
         if (recordOptional.isPresent()) {
             Record record = recordOptional.get();
-            if (!record.getUserId().equals(userRepository.findById(security.get().getUserId()).get()) &&
-                    security.get().getRole().equals(Roles.USER)) {
-                throw new NotThatUserUpdatesRecord(username);
-            }
+            checkSecurity(username, record);
             record.setStarted(recordUpdateStartedDto.getStarted());
             Record savedRecord = recordRepository.saveAndFlush(record);
             return savedRecord.equals(record);
@@ -112,10 +108,6 @@ public class RecordService {
     }
 
     public Boolean updateRecordDeadline(RecordUpdateDeadlineDto recordUpdateDeadlineDto, String username) {
-        Optional<Security> security = securityRepository.findByLogin(username);
-        if (security.isEmpty()) {
-            return false;
-        }
         Optional<Record> recordOptional = recordRepository.findById(recordUpdateDeadlineDto.getId());
         if (recordOptional.isPresent()) {
             Record record = recordOptional.get();
@@ -125,10 +117,7 @@ public class RecordService {
             } else {
                 record.setStatus(Status.STARTED);
             }
-            if (!record.getUserId().equals(userRepository.findById(security.get().getUserId()).get()) &&
-                    security.get().getRole().equals(Roles.USER)) {
-                throw new NotThatUserUpdatesRecord(username);
-            }
+            checkSecurity(username, record);
             Record savedRecord = recordRepository.saveAndFlush(record);
             return savedRecord.equals(record);
         }
@@ -136,20 +125,13 @@ public class RecordService {
     }
 
     public Boolean updateRecordProjectId(RecordUpdateProjectIdDto recordUpdateProjectIdDto, String username) {
-        Optional<Security> security = securityRepository.findByLogin(username);
-        if (security.isEmpty()) {
-            return false;
-        }
         Optional<Record> recordOptional = recordRepository.findById(recordUpdateProjectIdDto.getId());
         if (recordOptional.isPresent()) {
             Record record = recordOptional.get();
             if (projectRepository.findByName(recordUpdateProjectIdDto.getProject().getName()).isPresent()) {
                 record.setProjectId(projectRepository.findByName(recordUpdateProjectIdDto.getProject().getName()).get().getId());
             }
-            if (!record.getUserId().equals(userRepository.findById(security.get().getUserId()).get()) &&
-                    security.get().getRole().equals(Roles.USER)) {
-                throw new NotThatUserUpdatesRecord(username);
-            }
+            checkSecurity(username, record);
             Record savedRecord = recordRepository.saveAndFlush(record);
             return savedRecord.equals(record);
         }
@@ -157,23 +139,38 @@ public class RecordService {
     }
 
     public Boolean projectCompleted(Long id, String username) {
-        Optional<Security> security = securityRepository.findByLogin(username);
-        if (security.isEmpty()) {
-            return false;
-        }
         Optional<Record> recordOptional = recordRepository.findById(id);
         if (recordOptional.isPresent()) {
             Record record = recordOptional.get();
             record.setDeadline(Timestamp.valueOf(LocalDateTime.now()));
             record.setStatus(Status.FINISHED);
-            if (!record.getUserId().equals(userRepository.findById(security.get().getUserId()).get()) &&
-                    security.get().getRole().equals(Roles.USER)) {
-                throw new NotThatUserUpdatesRecord(username);
-            }
+            checkSecurity(username, record);
             Record savedRecord = recordRepository.saveAndFlush(record);
             return savedRecord.equals(record);
         }
         return false;
+    }
+
+    private void checkSecurity(String username, Record record) {
+        Optional<Security> security = securityRepository.findByLogin(username);
+        if (security.isEmpty()) {
+            throw new NotThatUserUpdatesRecord(username);
+        }
+        if (!record.getUserId().equals(userRepository.findById(security.get().getUserId()).get()) &&
+                security.get().getRole().equals(Roles.USER)) {
+            throw new NotThatUserUpdatesRecord(username);
+        }
+    }
+
+    private User startTimerUser(String username) {
+        Optional<Security> securityOptional = securityRepository.findByLogin(username);
+        if (securityOptional.isEmpty()) {
+            throw new NotThatUserUpdatesRecord(username);
+        }
+        if(userRepository.findById(securityOptional.get().getUserId()).isEmpty()){
+            throw new NotThatUserUpdatesRecord(username);
+        }
+        return userRepository.findById(securityOptional.get().getUserId()).get();
     }
 
     public Boolean deleteRecordById(Long id) {
