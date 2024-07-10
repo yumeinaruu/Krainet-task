@@ -25,34 +25,6 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    public Boolean sendEmail(MultipartFile[] file, String to, String[] cc, String subject, String body) {
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
-            helper.setFrom(fromEmail);
-            helper.setTo(to);
-            helper.setCc(cc);
-            helper.setSubject(subject);
-            helper.setText(body);
-
-            if (file.length != 0){
-                for (int i = 0; i < file.length; i++) {
-                    if (file[i] != null) {
-                        helper.addAttachment(
-                                file[i].getOriginalFilename(),
-                                new ByteArrayResource(file[i].getBytes()));
-                    }
-                }
-            }
-            mailSender.send(mimeMessage);
-            return true;
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        return false;
-    }
-
     public String sendEmailNoAttachment(String to, String[] cc, String subject, String body) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
