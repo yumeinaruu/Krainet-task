@@ -1,14 +1,14 @@
 package org.krainet.tracker.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.krainet.tracker.exception.custom.CustomValidationException;
 import org.krainet.tracker.model.Record;
-import org.krainet.tracker.model.User;
 import org.krainet.tracker.model.dto.record.RecordCreateDto;
 import org.krainet.tracker.model.dto.record.RecordStartDto;
-import org.krainet.tracker.model.dto.record.RecordUpdateDeadlineDto;
+import org.krainet.tracker.model.dto.record.RecordUpdateEndedDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateProjectIdDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateStartedDto;
@@ -48,6 +48,7 @@ public class RecordController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Gives info about all records")
     public ResponseEntity<List<Record>> getRecords() {
         List<Record> records = recordService.getAllRecords();
         if (records.isEmpty()) {
@@ -58,6 +59,7 @@ public class RecordController {
 
     @GetMapping("/id/{id}")
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Gives info about record by id")
     public ResponseEntity<Record> getRecordById(@PathVariable Long id) {
         Optional<Record> record = recordService.getRecordById(id);
         if (record.isPresent()) {
@@ -68,6 +70,7 @@ public class RecordController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Create record")
     public ResponseEntity<HttpStatus> createRecord(@RequestBody @Valid RecordCreateDto recordCreateDto,
                                                    BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -78,6 +81,7 @@ public class RecordController {
 
     @PostMapping("/start")
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Start record (Counts time right after you pressed execute")
     public ResponseEntity<HttpStatus> startRecord(@RequestBody @Valid RecordStartDto recordStartDto,
                                                   BindingResult bindingResult, Principal principal) {
         if (bindingResult.hasErrors()) {
@@ -88,6 +92,7 @@ public class RecordController {
 
     @PutMapping
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Update record")
     public ResponseEntity<HttpStatus> updateRecord(@RequestBody @Valid RecordUpdateDto recordUpdateDto,
                                                    BindingResult bindingResult, Principal principal) {
         if (bindingResult.hasErrors()) {
@@ -98,6 +103,7 @@ public class RecordController {
 
     @PutMapping("/started")
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Update record's started time")
     public ResponseEntity<HttpStatus> updateRecordStarted(@RequestBody @Valid RecordUpdateStartedDto recordUpdateStartedDto,
                                                           BindingResult bindingResult, Principal principal) {
         if (bindingResult.hasErrors()) {
@@ -106,18 +112,20 @@ public class RecordController {
         return new ResponseEntity<>(recordService.updateRecordStarted(recordUpdateStartedDto, principal.getName()) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
     }
 
-    @PutMapping("/deadline")
+    @PutMapping("/ended")
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<HttpStatus> updateRecordDeadline(@RequestBody @Valid RecordUpdateDeadlineDto recordUpdateDeadlineDto,
+    @Operation(summary = "Update record's ending time")
+    public ResponseEntity<HttpStatus> updateRecordEnded(@RequestBody @Valid RecordUpdateEndedDto recordUpdateDeadlineDto,
                                                            BindingResult bindingResult, Principal principal) {
         if (bindingResult.hasErrors()) {
             throw new CustomValidationException(bindingResult.getAllErrors().toString());
         }
-        return new ResponseEntity<>(recordService.updateRecordDeadline(recordUpdateDeadlineDto, principal.getName()) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(recordService.updateRecordEnded(recordUpdateDeadlineDto, principal.getName()) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
     }
 
     @PutMapping("/project")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Update record's project")
     public ResponseEntity<HttpStatus> updateRecordProject(@RequestBody @Valid RecordUpdateProjectIdDto recordUpdateProjectIdDto,
                                                           BindingResult bindingResult, Principal principal) {
         if (bindingResult.hasErrors()) {
@@ -128,12 +136,14 @@ public class RecordController {
 
     @PostMapping("/end/{id}")
     @PreAuthorize("hasAnyRole('USER' ,'ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "End record")
     public ResponseEntity<HttpStatus> makeRecordEnd(@PathVariable Long id, Principal principal) {
         return new ResponseEntity<>(recordService.projectCompleted(id, principal.getName()) ? HttpStatus.NO_CONTENT : HttpStatus.CONFLICT);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @Operation(summary = "Delete record")
     public ResponseEntity<HttpStatus> deleteRecord(@PathVariable Long id) {
         return new ResponseEntity<>(recordService.deleteRecordById(id) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST);
     }

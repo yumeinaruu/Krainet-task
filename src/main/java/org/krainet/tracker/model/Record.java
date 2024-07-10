@@ -31,9 +31,9 @@ public class Record {
     @Temporal(TemporalType.TIMESTAMP)
     private Timestamp started;
 
-    @Column(name = "deadline")
+    @Column(name = "ended")
     @Temporal(TemporalType.TIMESTAMP)
-    private Timestamp deadline;
+    private Timestamp ended;
 
     @Column(name = "project_id", nullable = false)
     private Long projectId;

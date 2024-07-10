@@ -1,11 +1,13 @@
 package org.krainet.tracker.service;
 
+import org.krainet.tracker.exception.custom.NoSuchDataInDbException;
+import org.krainet.tracker.exception.custom.NoSuchUserException;
 import org.krainet.tracker.exception.custom.NotThatUserUpdatesRecord;
 import org.krainet.tracker.model.Record;
 import org.krainet.tracker.model.User;
 import org.krainet.tracker.model.dto.record.RecordCreateDto;
 import org.krainet.tracker.model.dto.record.RecordStartDto;
-import org.krainet.tracker.model.dto.record.RecordUpdateDeadlineDto;
+import org.krainet.tracker.model.dto.record.RecordUpdateEndedDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateProjectIdDto;
 import org.krainet.tracker.model.dto.record.RecordUpdateStartedDto;
@@ -79,12 +81,19 @@ public class RecordService {
         if (recordOptional.isPresent()) {
             Record record = recordOptional.get();
             record.setStarted(recordUpdateDto.getStarted());
-            record.setDeadline(recordUpdateDto.getDeadline());
+            record.setEnded(recordUpdateDto.getEnded());
             if (projectRepository.findByName(recordUpdateDto.getProject().getName()).isPresent()) {
                 record.setProjectId(projectRepository.findByName(recordUpdateDto.getProject().getName()).get().getId());
+            } else {
+                throw new NoSuchDataInDbException(recordUpdateDto.getProject().getName());
+            }
+            if(userRepository.findByName(recordUpdateDto.getUser().getName()).isPresent()) {
+                record.setUserId(userRepository.findByName(recordUpdateDto.getUser().getName()).get());
+            } else {
+                throw new NoSuchUserException(recordUpdateDto.getUser().getName());
             }
             checkSecurity(username, record);
-            if (record.getDeadline().before(Timestamp.valueOf(LocalDateTime.now()))) {
+            if (record.getEnded().before(Timestamp.valueOf(LocalDateTime.now()))) {
                 record.setStatus(Status.FINISHED);
             } else {
                 record.setStatus(Status.STARTED);
@@ -107,12 +116,12 @@ public class RecordService {
         return false;
     }
 
-    public Boolean updateRecordDeadline(RecordUpdateDeadlineDto recordUpdateDeadlineDto, String username) {
+    public Boolean updateRecordEnded(RecordUpdateEndedDto recordUpdateDeadlineDto, String username) {
         Optional<Record> recordOptional = recordRepository.findById(recordUpdateDeadlineDto.getId());
         if (recordOptional.isPresent()) {
             Record record = recordOptional.get();
-            record.setDeadline(recordUpdateDeadlineDto.getDeadline());
-            if (record.getDeadline().before(Timestamp.valueOf(LocalDateTime.now()))) {
+            record.setEnded(recordUpdateDeadlineDto.getEnded());
+            if (record.getEnded().before(Timestamp.valueOf(LocalDateTime.now()))) {
                 record.setStatus(Status.FINISHED);
             } else {
                 record.setStatus(Status.STARTED);
@@ -130,6 +139,8 @@ public class RecordService {
             Record record = recordOptional.get();
             if (projectRepository.findByName(recordUpdateProjectIdDto.getProject().getName()).isPresent()) {
                 record.setProjectId(projectRepository.findByName(recordUpdateProjectIdDto.getProject().getName()).get().getId());
+            } else {
+                throw new NoSuchDataInDbException(recordUpdateProjectIdDto.getProject().getName());
             }
             checkSecurity(username, record);
             Record savedRecord = recordRepository.saveAndFlush(record);
@@ -142,7 +153,7 @@ public class RecordService {
         Optional<Record> recordOptional = recordRepository.findById(id);
         if (recordOptional.isPresent()) {
             Record record = recordOptional.get();
-            record.setDeadline(Timestamp.valueOf(LocalDateTime.now()));
+            record.setEnded(Timestamp.valueOf(LocalDateTime.now()));
             record.setStatus(Status.FINISHED);
             checkSecurity(username, record);
             Record savedRecord = recordRepository.saveAndFlush(record);
@@ -154,7 +165,7 @@ public class RecordService {
     private void checkSecurity(String username, Record record) {
         Optional<Security> security = securityRepository.findByLogin(username);
         if (security.isEmpty()) {
-            throw new NotThatUserUpdatesRecord(username);
+            throw new NoSuchUserException(username);
         }
         if (!record.getUserId().equals(userRepository.findById(security.get().getUserId()).get()) &&
                 security.get().getRole().equals(Roles.USER)) {
@@ -165,7 +176,7 @@ public class RecordService {
     private User startTimerUser(String username) {
         Optional<Security> securityOptional = securityRepository.findByLogin(username);
         if (securityOptional.isEmpty()) {
-            throw new NotThatUserUpdatesRecord(username);
+            throw new NoSuchUserException(username);
         }
         if(userRepository.findById(securityOptional.get().getUserId()).isEmpty()){
             throw new NotThatUserUpdatesRecord(username);

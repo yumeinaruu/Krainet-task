@@ -12,9 +12,9 @@ import java.sql.Timestamp;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RecordUpdateDeadlineDto {
+public class RecordUpdateEndedDto {
     @NotNull
     private Long id;
 
-    private Timestamp deadline;
+    private Timestamp ended;
 }

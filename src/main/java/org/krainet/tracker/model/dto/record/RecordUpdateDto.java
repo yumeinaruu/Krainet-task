@@ -21,7 +21,7 @@ public class RecordUpdateDto {
     @NotNull
     private Timestamp started;
 
-    private Timestamp deadline;
+    private Timestamp ended;
 
     @NotNull
     private ProjectForRecordDto project;
