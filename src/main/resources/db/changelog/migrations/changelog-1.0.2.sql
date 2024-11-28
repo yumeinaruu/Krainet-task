@@ -1,20 +1,16 @@
 --liquibase formatted sql
 
 --changeset yumeinaruu:2
---comment table projects created
-create table public.projects
+--comment table security created
+create table security
 (
-    id          bigserial
-        constraint projects_pk
-            primary key,
-    name        varchar not null,
-    description text,
-    user_id     bigint
-        constraint projects_users_id_fk
-            references public.users
-            on update cascade on delete cascade
+    id       bigint auto_increment
+        primary key,
+    login    varchar(255) not null,
+    password varchar(255) not null,
+    role     varchar(255) not null,
+    user_id  bigint not null,
+    foreign key (user_id) references users(id)
+        on update cascade on delete cascade
 );
-
-alter table public.projects
-    owner to postgres;
 

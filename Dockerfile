@@ -4,7 +4,7 @@ COPY /src /src
 COPY pom.xml /
 RUN mvn -f /pom.xml clean package -Dmaven.test.skip=true
 
-FROM openjdk:17-alpine
+FROM openjdk:17-oracle
 WORKDIR /
 COPY /src /
 COPY --from=build /target/*.jar application.jar
