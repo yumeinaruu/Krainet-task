@@ -58,8 +58,6 @@ Options:
         - Spring MVC
         - Spring Security
         - Spring AOP(Transactional)
-        - Liquibase
-        - Maven
     + Slf4g for logging
     + Swagger
     + Docker
